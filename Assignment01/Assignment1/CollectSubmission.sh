@@ -28,3 +28,5 @@ rm -f $1.tar.gz
 mkdir $1
 cp -r  ./*.py $1/
 tar cvzf $1.tar.gz $1
+
+rm -rf $1 *.py
