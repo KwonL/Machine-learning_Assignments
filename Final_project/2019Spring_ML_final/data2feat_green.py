@@ -4,6 +4,7 @@
 from data_utils import *
 from PIL import Image
 from datetime import datetime
+from multiprocessing import Process
 
 
 def get_data_without_norm(seq) :
@@ -68,16 +69,17 @@ def effective_pixel_num(image) :
     return cnt
 
 
-def main_data2feat_2() :
+def main_data2feat_2(pid) :
     batch_size = 200
-    seq = 0
+    seq = 1000 * pid
+    offset = 1000 * pid
     cordinates_dir = './processed_data/green_num_cordinates/'
-    for i in range(int(10000 / batch_size)) :
+    for i in range(int(1000 / batch_size)) :
         print("iter %d" % i)
         time1 = datetime.now()
 
 
-        batch = get_data_without_norm(list(range(200 * i, 200 * (i + 1))))
+        batch = get_data_without_norm(list(range(offset + 200 * i, offset + 200 * (i + 1))))
 
         for data_set in batch :
             fd = open(os.path.join(cordinates_dir, '%04d' % seq), 'w')
@@ -119,4 +121,13 @@ def main_data2feat_2() :
 
 
 if __name__ == '__main__' :
-    main_data2feat_2()
+    p_list = list()
+    for i in range(10) :
+        p = Process(target=main_data2feat_2, args=(i,))
+        p_list.append(p)
+
+    for p in p_list :
+        p.start()
+    
+    for p in p_list :
+        p.join()
