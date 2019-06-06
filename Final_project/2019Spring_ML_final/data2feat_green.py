@@ -103,7 +103,7 @@ def main_data2feat_2(pid) :
         print("iter %d" % i)
         time1 = datetime.now()
 
-        batch = get_data_without_norm(list(range(offset + 200 * i, offset + 200 * (i + 1))))
+        batch = get_data_without_norm(list(range(offset + batch_size * i, offset + batch_size * (i + 1))))
 
         for data_set in batch :
             if mode == 'train' :
