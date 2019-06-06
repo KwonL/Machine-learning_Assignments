@@ -99,6 +99,8 @@ def main_data2feat_2(pid) :
 
     cordinates_dir = './processed_data/%s/green_num_cordinates/' % mode
     image_dir = './processed_data/%s/green_num_images/' % mode
+    os.makedirs(cordinates_dir, exist_ok=True)
+    os.makedirs(image_dir, exist_ok=True)
  
     for i in range(int(set_size / 10 / batch_size)) :
         print("iter %d" % i)
