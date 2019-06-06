@@ -65,11 +65,12 @@ def main_data2feat() :
 
             Image.fromarray(num_img).save('./processed_data/red_num_images/rednum_seq%04d.png' % seq)
 
-            fd.write('%d %d\n' % (x_c, y_c))
+            fd.write('%d %d\n' % (x_m, y_m))
 
             # Then, extract coordinate of numbers
             for idx in range(1, 20) :
-                fd.write('%d %d\n' % get_center_of_number(data_set[idx]))
+                x_tmp, y_tmp = get_center_of_number(data_set[idx])
+                fd.write('%d %d\n' % (x_tmp - 11, y_tmp - 11))
 
             fd.close()
             seq += 1

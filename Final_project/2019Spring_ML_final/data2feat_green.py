@@ -109,7 +109,8 @@ def main_data2feat_2(pid) :
 
             # Then, extract coordinate of numbers
             for idx in range(20) :
-                fd.write('%d %d\n' % get_center_of_number_2(data_set[idx], num_img))
+                x_tmp, y_tmp = get_center_of_number_2(data_set[idx], num_img)
+                fd.write('%d %d\n' % (x_tmp, y_tmp))
 
             fd.close()
             print("for seq %d" % seq)
