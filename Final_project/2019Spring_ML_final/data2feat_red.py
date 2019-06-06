@@ -3,7 +3,7 @@
 # Center is (11, 11) of image(start from 0 to 23)
 from data_utils import *
 from PIL import Image
-from datetime import datetime
+import sys
 from multiprocessing import Process
 
 
@@ -33,9 +33,9 @@ def get_center_of_number(sample_img) :
 
     for r, row in enumerate(sample_img) :
         for c, pixel in enumerate(row) :
-            G = pixel[1]
+            R = pixel[0]
 
-            if G != 0 :
+            if R != 0 :
                 # print(pixel)
                 if c < c_min :
                     c_min = c
@@ -49,33 +49,7 @@ def get_center_of_number(sample_img) :
     return (r_max + r_min) // 2, (c_max + c_min) // 2
 
 
-def get_center_of_number_2(sample_img, base_number_img) :
-    max_cnt = 0
-    max_offset = 0, 0
-    for i in range(64 - 24 + 1) :
-        for j in range(64 - 24 + 1) :
-            cnt = 0
-            for x in range(24) :
-                if sample_img[i + x][j + x][1] == base_number_img[x][x][1] :
-                    cnt += 1
-            if cnt > max_cnt :
-                max_cnt = cnt
-                max_offset = i + 11, j + 11
-
-    return max_offset
-
-
-def effective_pixel_num(image) :
-    cnt = 0
-    for i in range(64) :
-        for j in range(64) :
-            if image[i][j][1] != 0 :
-                cnt += 1
-
-    return cnt
-
-
-def main_data2feat_2(pid) :
+def main_data2feat(pid) :
     batch_size = 200
     set_size = 10000
     seq = 1000 * pid
@@ -95,15 +69,14 @@ def main_data2feat_2(pid) :
         batch_size = 10
     if mode == 'test' :
         num_seq = 10
+    cordinates_dir = './processed_data/%s/red_num_cordinates/' % mode
+    image_dir = './processed_data/%s/red_num_images/' % mode
+    os.makedirs(cordinates_dir, exist_ok=True)
+    os.makedirs(image_dir, exist_ok=True)
 
-    cordinates_dir = './processed_data/%s/green_num_cordinates/' % mode
-    image_dir = './processed_data/%s/green_num_images/' % mode
- 
     for i in range(int(set_size / 10 / batch_size)) :
         print("iter %d" % i)
-        time1 = datetime.now()
-
-        batch = get_data_without_norm(list(range(offset + 200 * i, offset + 200 * (i + 1))))
+        batch = get_data_without_norm(list(range(offset + batch_size * i, offset + batch_size * (i + 1))), mode)
 
         for data_set in batch :
             if mode == 'train' :
@@ -111,17 +84,7 @@ def main_data2feat_2(pid) :
             else :
                 fd = open(os.path.join(cordinates_dir, '%03d' % seq), 'w')
             # First, extract rednumber
-
-            # Determine which image is most powerful
-            max_idx = 0
-            max_num = 0
-            for i in range(10) :
-                tmp = effective_pixel_num(data_set[i]) 
-                if tmp > max_num :
-                    max_num = tmp
-                    max_idx = i
-
-            sample_img = data_set[max_idx]
+            sample_img = data_set[0]
             x_c, y_c = get_center_of_number(sample_img)
             x_m, y_m = x_c - 11, y_c - 11
 
@@ -129,33 +92,31 @@ def main_data2feat_2(pid) :
             num_img = np.zeros([24, 24, 3])
             for i in range(24) :
                 for j in range(24) :
-                    num_img[i][j][1] = sample_img[x_m + i][y_m + j][1]
+                    num_img[i][j][0] = sample_img[x_m + i][y_m + j][0]
             num_img = num_img.astype(np.uint8)
 
             if mode == 'train' :
-                tmp_path = os.path.join(image_dir, 'greennum_seq%04d.png' % seq)
+                tmp_path = os.path.join(image_dir, 'rednum_seq%04d.png' % seq)
             else :
-                tmp_path = os.path.join(image_dir, 'greennum_seq%03d.png' % seq)  
+                tmp_path = os.path.join(image_dir, 'rednum_seq%03d.png' % seq)  
             Image.fromarray(num_img).save(tmp_path)
 
+            fd.write('%d %d\n' % (x_m, y_m))
+
             # Then, extract coordinate of numbers
-            for idx in range(num_seq) :
-                x_tmp, y_tmp = get_center_of_number_2(data_set[idx], num_img)
-                fd.write('%d %d\n' % (x_tmp, y_tmp))
+            for idx in range(1, num_seq) :
+                x_tmp, y_tmp = get_center_of_number(data_set[idx])
+                fd.write('%d %d\n' % (x_tmp - 11, y_tmp - 11))
 
             fd.close()
             print("for seq %d" % seq)
             seq += 1
 
 
-        time2 = datetime.now()
-        print("For one batch, time: " + str(time2 - time1))
-
-
 if __name__ == '__main__' :
     p_list = list()
     for i in range(10) :
-        p = Process(target=main_data2feat_2, args=(i,))
+        p = Process(target=main_data2feat, args=(i,))
         p_list.append(p)
 
     for p in p_list :
