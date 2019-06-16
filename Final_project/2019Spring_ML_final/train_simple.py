@@ -18,33 +18,33 @@ from generator import *
 # Set session for keras's backend
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 config = tf.ConfigProto()
-# config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
+config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
 config.gpu_options.per_process_gpu_memory_fraction=0.9
 sess = tf.Session(config=config)
 set_session(sess)  # set this TensorFlow session as the default session for Keras
 
 seq = Sequential()
-seq.add(ConvLSTM2D(filters=40, kernel_size=(3, 3),
+seq.add(ConvLSTM2D(filters=64, kernel_size=(1, 1),
                    input_shape=(None, 64, 64, 3),
                    padding='same', return_sequences=True))
 seq.add(BatchNormalization())
 
-seq.add(ConvLSTM2D(filters=40, kernel_size=(3, 3),
+seq.add(ConvLSTM2D(filters=64, kernel_size=(2, 2),
                    padding='same', return_sequences=True))
 seq.add(BatchNormalization())
 
-seq.add(ConvLSTM2D(filters=40, kernel_size=(3, 3),
+seq.add(ConvLSTM2D(filters=64, kernel_size=(1, 1),
                    padding='same', return_sequences=True))
 seq.add(BatchNormalization())
 
-seq.add(ConvLSTM2D(filters=40, kernel_size=(3, 3),
+seq.add(ConvLSTM2D(filters=64, kernel_size=(2, 2),
                    padding='same', return_sequences=True))
 seq.add(BatchNormalization())
 
-seq.add(Conv3D(filters=3, kernel_size=(3, 3, 3),
+seq.add(Conv3D(filters=3, kernel_size=(1, 1, 1),
                activation='sigmoid',
                padding='same', data_format='channels_last'))
-seq.compile(loss='binary_crossentropy', optimizer='adadelta')
+seq.compile(loss='binary_crossentropy', optimizer='adam')
 
 
 # Train the network
@@ -62,7 +62,7 @@ seq.fit_generator(
     validation_data=validation_generator,
     use_multiprocessing=True,
     workers=12,
-    epochs=5
+    epochs=40
 )
 
 # Save model
@@ -80,12 +80,14 @@ track = noisy_movies[which][:10, ::, ::, ::]
 for j in range(20):
     new_pos = seq.predict(track[np.newaxis, ::, ::, ::, ::])
     new = new_pos[::, -1, ::, ::, ::]
+    print("shape: %s, %s" % (track.shape, new.shape))
     track = np.concatenate((track, new), axis=0)
 
 
 # And then compare the predictions
 # to the ground truth
 track2 = noisy_movies[which][::, ::, ::, ::]
+os.makedirs('./output_example', exist_ok=True)
 for i in range(19):
     fig = plt.figure(figsize=(10, 5))
 
@@ -107,4 +109,4 @@ for i in range(19):
         toplot = shifted_movies[which][i - 1, ::, ::, :]
 
     plt.imshow(toplot)
-    plt.savefig('%i_animate.png' % (i + 1))
+    plt.savefig('./output_example/%i_animate.png' % (i + 1))
