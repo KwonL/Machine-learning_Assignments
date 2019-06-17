@@ -15,8 +15,8 @@ class DataGenerator(keras.utils.Sequence):
 
     def __len__(self):
         'Denotes the number of batches per epoch'
-        # return int(np.floor(self.dataset_size / self.batch_size))
-        return 1000
+        # return int(np.floor(self.dataset_size / self.batch_size / 10))
+        return 500
 
     def __getitem__(self, index):
         'Generate one batch of data'
