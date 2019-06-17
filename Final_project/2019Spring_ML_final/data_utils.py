@@ -39,7 +39,7 @@ def get_test_batch(start, end, T=10, dir='Data/test_sequence/'):
     input = np.zeros([end-start, T, 64, 64, 3])
     for i, idx in enumerate(range(start, end)):
         for t in range(T):
-            img_path = os.path.join(dir, 'sequence%04d' % idx, 'frames%02d.png' % t)
+            img_path = os.path.join(dir, 'sequence%03d' % idx, 'frames%02d.png' % t)
             img = np.array(Image.open(img_path)) / 255.0  # normalize
             input[i, t] = img
 
