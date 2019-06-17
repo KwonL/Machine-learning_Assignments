@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-root_dir = 'test_preidcted/'
+root_dir = 'test_predicted/'
 save_dir = ''
 
 seq_list = ['sequence%03d' % i for i in range(500)]
