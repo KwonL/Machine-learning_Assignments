@@ -5,18 +5,19 @@ from PIL import Image
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
-    def __init__(self, target='Data/train_sequence/', batch_size=10, shuffle=True):
+    def __init__(self, target='Data/train_sequence/', batch_size=10, batch_num_per_epoch=500, shuffle=True):
         'Initialization'
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.dataset_size = 10000
         self.target = target
+        self.batch_num_per_epoch = batch_num_per_epoch
         self.on_epoch_end()
 
     def __len__(self):
         'Denotes the number of batches per epoch'
         # return int(np.floor(self.dataset_size / self.batch_size / 10))
-        return 500
+        return self.batch_num_per_epoch
 
     def __getitem__(self, index):
         'Generate one batch of data'

@@ -1,6 +1,7 @@
 from keras.models import Sequential
 from keras.layers.convolutional import Conv3D
 from keras.layers.convolutional_recurrent import ConvLSTM2D
+from keras.layers import MaxPooling3D
 from keras.layers.normalization import BatchNormalization
 from keras.backend.tensorflow_backend import set_session
 import numpy as np
@@ -24,27 +25,34 @@ sess = tf.Session(config=config)
 set_session(sess)  # set this TensorFlow session as the default session for Keras
 
 seq = Sequential()
-seq.add(ConvLSTM2D(filters=64, kernel_size=(1, 1),
-                   input_shape=(None, 64, 64, 3),
-                   padding='same', return_sequences=True))
+seq.add(Conv3D(filters=32, kernel_size=(3,3,3),
+               activation='relu',
+               strides=(1,1,1),
+               input_shape=(None, 64, 64, 3),
+               padding='same'))
 seq.add(BatchNormalization())
-
+seq.add(Conv3D(filters=64, kernel_size=(3,3,3),
+               activation='relu',
+               strides=(1,1,1),
+               padding='same'))
+seq.add(BatchNormalization())
+#seq.add(MaxPooling3D(pool_size=(1,2,2), strides=(1,2,2)))
+#seq.add(Conv3D(filters=64, kernel_size=(1,1,1),
+#               activation='relu',
+#               strides=(1,1,1),
+#               padding='same'))
 seq.add(ConvLSTM2D(filters=64, kernel_size=(2, 2),
                    padding='same', return_sequences=True))
 seq.add(BatchNormalization())
-
-seq.add(ConvLSTM2D(filters=64, kernel_size=(1, 1),
-                   padding='same', return_sequences=True))
-seq.add(BatchNormalization())
-
-seq.add(ConvLSTM2D(filters=64, kernel_size=(2, 2),
-                   padding='same', return_sequences=True))
-seq.add(BatchNormalization())
-
+#seq.add(Conv3D(filters=32, kernel_size=(3,3,3),
+#               activation='relu',
+#               strides=(1,1,1),
+#               padding='same'))
+#seq.add(BatchNormalization())
 seq.add(Conv3D(filters=3, kernel_size=(1, 1, 1),
                activation='sigmoid',
                padding='same', data_format='channels_last'))
-seq.compile(loss='binary_crossentropy', optimizer='adam')
+seq.compile(loss='binary_crossentropy', optimizer='adadelta')
 
 
 # Train the network
